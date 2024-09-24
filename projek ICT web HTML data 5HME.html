@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelas 5 HME</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f'); /* Gambar perpustakaan dengan rak buku */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+        }
+
+        nav {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav a {
+            color: white;
+            margin: 10px 20px;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px;
+            transition: background 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+        }
+
+        .container {
+            padding: 50px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            margin: 20px auto;
+            width: 80%;
+            border-radius: 15px;
+            display: none; /* Default: semua container tidak ditampilkan */
+        }
+
+        .container.active {
+            display: block; /* Tampilkan container yang aktif */
+        }
+
+        h1, h2 {
+            color: #ffcc00;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid white;
+        }
+
+        th {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+        }
+
+        td {
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .selected {
+            background-color: yellow;
+            color: black;
+        }
+
+        /* Tombol */
+        button {
+            padding: 10px 20px;
+            background-color: #ffcc00;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #ff9900;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .image-preview {
+            margin-top: 20px;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="#home">Beranda</a>
+        <a href="#members">Anggota Kelas</a>
+        <a href="#schedule">Jadwal Pelajaran</a>
+        <a href="#assignments">Daftar Tugas</a>
+    </nav>
+
+    <div class="container active" id="home">
+        <h1>Selamat Datang di Kelas 5 HME</h1>
+        <p>Kelas yang dipenuhi pembelajar yang beradab dan penuh semangat! Temukan semua informasi tentang kelas kami di sini.</p>
+    </div>
+
+    <div class="container" id="members">
+        <h2>Daftar Anggota Kelas</h2>
+        <table id="member-table">
+            <tr>
+                <th>Nama</th>
+                <th>Asal</th>
+                <th>Tanggal Lahir</th>
+            </tr>
+        </table>
+        <button class="hidden" id="delete-button" onclick="deleteData()">Hapus Data</button>
+        <button onclick="addData()">Tambah Data</button>
+    </div>
+
+    <div class="container" id="schedule">
+        <h2>Jadwal Pelajaran</h2>
+        <input type="file" id="file-input" accept="image/*" onchange="previewImage()">
+        <div class="image-preview hidden" id="image-preview">
+            <img id="image-display" src="" alt="Preview Gambar">
+        </div>
+        <button class="hidden" id="delete-image-button" onclick="deleteImage()">Hapus Gambar</button>
+    </div>
+
+    <div class="container" id="assignments">
+        <h2>Daftar Tugas</h2>
+        <table id="assignment-table">
+            <tr>
+                <th>Mata Pelajaran</th>
+                <th>Deskripsi</th>
+                <th>Batas Pengumpulan</th>
+            </tr>
+        </table>
+        <button onclick="addAssignment()">Tambah Tugas</button>
+        <button class="hidden" id="delete-assignment-button" onclick="deleteAssignment()">Hapus Tugas</button>
+    </div>
+
+    <script>
+        // Mengatur navigasi antar menu
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', function() {
+                const target = link.getAttribute('href').substring(1);
+                document.querySelectorAll('.container').forEach(section => {
+                    section.classList.remove('active'); // Sembunyikan semua kontainer
+                });
+                document.getElementById(target).classList.add('active'); // Tampilkan kontainer yang dipilih
+            });
+        });
+
+        let selectedRow = null;
+        let selectedTable = null;
+
+        // Menambahkan data ke tabel anggota
+        function addData() {
+            const password = prompt("Masukkan password untuk menambah data:");
+            if (password === "999") {
+                const name = prompt("Masukkan nama:");
+                const residence = prompt("Masukkan asal:");
+                const birthdate = prompt("Masukkan tanggal lahir:");
+                const table = document.getElementById('member-table');
+                const row = table.insertRow(-1);
+                row.insertCell(0).textContent = name;
+                row.insertCell(1).textContent = residence;
+                row.insertCell(2).textContent = birthdate;
+                row.addEventListener('click', function() {
+                    selectRow(row, 'member');
+                });
+                saveMemberData();
+            } else {
+                alert("Password salah!");
+            }
+        }
+
+        // Menghapus data dari tabel
+        function deleteData() {
+            if (selectedRow && selectedTable === 'member') {
+                const password = prompt("Masukkan password untuk menghapus data:");
+                if (password === "999") {
+                    selectedRow.remove();
+                    selectedRow = null;
+                    selectedTable = null;
+                    document.getElementById('delete-button').classList.add('hidden');
+                    saveMemberData();
+                } else {
+                    alert("Password salah!");
+                }
+            }
+        }
+
+        // Menambahkan tugas ke tabel
+        function addAssignment() {
+            const password = prompt("Masukkan password untuk menambah tugas:");
+            if (password === "999") {
+                const subject = prompt("Masukkan mata pelajaran:");
+                const description = prompt("Masukkan deskripsi tugas:");
+                const deadline = prompt("Masukkan batas pengumpulan:");
+                const table = document.getElementById('assignment-table');
+                const row = table.insertRow(-1);
+                row.insertCell(0).textContent = subject;
+                row.insertCell(1).textContent = description;
+                row.insertCell(2).textContent = deadline;
+                row.addEventListener('click', function() {
+                    selectRow(row, 'assignment');
+                });
+                saveAssignmentData();
+            } else {
+                alert("Password salah!");
+            }
+        }
+
+        // Menghapus tugas dari tabel
+        function deleteAssignment() {
+            if (selectedRow && selectedTable === 'assignment') {
+                const password = prompt("Masukkan password untuk menghapus tugas:");
+                if (password === "999") {
+                    selectedRow.remove();
+                    selectedRow = null;
+                    selectedTable = null;
+                    document.getElementById('delete-assignment-button').classList.add('hidden');
+                    saveAssignmentData();
+                } else {
+                    alert("Password salah!");
+                }
+            }
+        }
+
+        // Memilih baris untuk dihapus
+        function selectRow(row, tableType) {
+            if (selectedRow) {
+                selectedRow.classList.remove('selected');
+            }
+            selectedRow = row;
+            selectedTable = tableType;
+            row.classList.add('selected');
+            
+            if (tableType === 'member') {
+                document.getElementById('delete-button').classList.remove('hidden');
+                document.getElementById('delete-assignment-button').classList.add('hidden');
+            } else if (tableType === 'assignment') {
+                document.getElementById('delete-assignment-button').classList.remove('hidden');
+                document.getElementById('delete-button').classList.add('hidden');
+            }
+        }
+
+        // Preview gambar yang diunggah
+        function previewImage() {
+            const password = prompt("Masukkan password untuk mengunggah gambar:");
+            if (password === "999") {
+                const file = document.getElementById('file-input').files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('image-display').src = e.target.result;
+                        document.getElementById('image-preview').classList.remove('hidden');
+                        document.getElementById('delete-image-button').classList.remove('hidden');
+                        saveImageData(e.target.result);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                alert("Password salah!");
+                document.getElementById('file-input').value = ''; // Reset input file
+                document.getElementById('image-preview').classList.add('hidden'); // Hide preview
+            }
+        }
+
+        // Menghapus gambar
+        function deleteImage() {
+            const password = prompt("Masukkan password untuk menghapus gambar:");
+            if (password === "999") {
+                document.getElementById('image-display').src = '';
+                document.getElementById('image-preview').classList.add('hidden');
+                document.getElementById('delete-image-button').classList.add('hidden');
+                saveImageData(''); // Save empty data
+                document.getElementById('file-input').value = ''; // Reset input file
+            } else {
+                alert("Password salah!");
+            }
+        }
+
+        // Simpan data gambar ke localStorage
+        function saveImageData(imageUrl) {
+            localStorage.setItem('image', imageUrl);
+        }
+
+        // Muat data gambar dari localStorage
+        function loadImageData() {
+            const imageUrl = localStorage.getItem('image');
+            if (imageUrl) {
+                document.getElementById('image-display').src = imageUrl;
+                document.getElementById('image-preview').classList.remove('hidden');
+                document.getElementById('delete-image-button').classList.remove('hidden');
+            }
+        }
+
+        // Simpan data anggota ke localStorage
+        function saveMemberData() {
+            const table = document.getElementById('member-table');
+            const rows = Array.from(table.querySelectorAll('tr')).slice(1); // Skip header row
+            const data = rows.map(row => ({
+                name: row.cells[0].textContent,
+                residence: row.cells[1].textContent,
+                birthdate: row.cells[2].textContent
+            }));
+            localStorage.setItem('members', JSON.stringify(data));
+        }
+
+        // Muat data anggota dari localStorage
+        function loadMemberData() {
+            const data = JSON.parse(localStorage.getItem('members')) || [];
+            const table = document.getElementById('member-table');
+            data.forEach(item => {
+                const row = table.insertRow(-1);
+                row.insertCell(0).textContent = item.name;
+                row.insertCell(1).textContent = item.residence;
+                row.insertCell(2).textContent = item.birthdate;
+                row.addEventListener('click', function() {
+                    selectRow(row, 'member');
+                });
+            });
+        }
+
+        // Simpan data tugas ke localStorage
+        function saveAssignmentData() {
+            const table = document.getElementById('assignment-table');
+            const rows = Array.from(table.querySelectorAll('tr')).slice(1); // Skip header row
+            const data = rows.map(row => ({
+                subject: row.cells[0].textContent,
+                description: row.cells[1].textContent,
+                deadline: row.cells[2].textContent
+            }));
+            localStorage.setItem('assignments', JSON.stringify(data));
+        }
+
+        // Muat data tugas dari localStorage
+        function loadAssignmentData() {
+            const data = JSON.parse(localStorage.getItem('assignments')) || [];
+            const table = document.getElementById('assignment-table');
+            data.forEach(item => {
+                const row = table.insertRow(-1);
+                row.insertCell(0).textContent = item.subject;
+                row.insertCell(1).textContent = item.description;
+                row.insertCell(2).textContent = item.deadline;
+                row.addEventListener('click', function() {
+                    selectRow(row, 'assignment');
+                });
+            });
+        }
+
+        // Load data saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMemberData();
+            loadAssignmentData();
+            loadImageData();
+        });
+    </script>
+</body>
+</html>
